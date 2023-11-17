@@ -8,15 +8,17 @@
 import Foundation
 
 struct MovieModel: Decodable {
-    let Search: [Movies]
+    var results: [Movie]
 }
 
-struct Movies: Decodable {
-    let Title: String
-    let Year: String
-    let Poster: String
+struct Movie: Decodable {
+    let id: Int
+    let title: String
+    let posterPath: String
     
-    var imageURL: URL? {
-        return URL(string: Poster)
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case posterPath = "poster_path"
     }
 }

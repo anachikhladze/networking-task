@@ -1,5 +1,5 @@
 //
-//  MovieCell.swift
+//  MovieTableViewCell.swift
 //  NetworkingTask
 //
 //  Created by Anna Sumire on 11.11.23.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MovieCell: UITableViewCell {
+final class MovieTableViewCell: UITableViewCell {
     
     // MARK: - Properties
     private let mainStackView: UIStackView = {
@@ -73,13 +73,16 @@ final class MovieCell: UITableViewCell {
         yearLabel.text = nil
     }
     
-    // MARK: - Configure
-    func configure(with model: Movies) {
-        titleLabel.text = "Title: \(model.Title)"
-        yearLabel.text = "Release Year: \(model.Year)"
-        
-        if let imageURL = model.imageURL {
-            MovieManager().loadImage(from: imageURL, into: movieImageView)
+    func configure(with movie: MovieViewModel) {
+        titleLabel.text = movie.title
+        setImage(from: movie.posterPath)
+    }
+    
+    func setImage(from url: String) {
+        MovieService.shared.downloadImage(from: url) { [weak self] image in
+            DispatchQueue.main.async {
+                self?.movieImageView.image = image
+            }
         }
     }
     

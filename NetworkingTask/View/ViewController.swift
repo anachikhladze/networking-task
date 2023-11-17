@@ -9,17 +9,9 @@ import UIKit
 
 final class ViewController: UIViewController {
     
-    private let movieManager = MovieManager()
+    private var movieListViewModel: MovieListViewModel = MovieListViewModel(movies: [])
     
-    private var movieList: [Movies]? {
-        didSet {
-            DispatchQueue.main.async { [weak self] in
-                self?.tableView.reloadData()
-            }
-        }
-    }
-    
-    // MARK: - Properties
+    // MARK: - UI Components
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -38,10 +30,16 @@ final class ViewController: UIViewController {
         fetchMovies()
     }
     
-    // MARK: - Private Methods
     private func fetchMovies() {
-        movieManager.fetchMovies { [weak self] movies in
-            self?.movieList = movies.Search
+        movieListViewModel.fetchMovies { [weak self] result in
+            switch result {
+            case .success:
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+            case .failure:
+                break
+            }
         }
     }
     
@@ -69,7 +67,7 @@ final class ViewController: UIViewController {
     private func setupTableView() {
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(MovieCell.self, forCellReuseIdentifier: "MovieCell")
+        tableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieCell")
         tableView.tableFooterView = UIView()
     }
 }
@@ -77,13 +75,13 @@ final class ViewController: UIViewController {
 // MARK: - TableViewDataSource & TableViewDelegate
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        movieList?.count ?? 0
+        movieListViewModel.numberOfRowsInSection(section)
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell") as? MovieCell {
-            guard let movie = movieList?[indexPath.row] else { return UITableViewCell() }
-            cell.configure(with: movie)
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell") as? MovieTableViewCell {
+            let movieVM = self.movieListViewModel.movieAtIndex(indexPath.row)
+            cell.configure(with: movieVM)
             return cell
         }
         return UITableViewCell()
